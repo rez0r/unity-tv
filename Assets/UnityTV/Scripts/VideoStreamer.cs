@@ -42,7 +42,7 @@ namespace Nerdtron.TV
                 }
 
                 // Assigned the downloaded video to a movie texture.
-                this.loadedMovieTexture = www.movie;
+                this.loadedMovieTexture = www.GetMovieTexture();
                 while (this.loadedMovieTexture.isReadyToPlay == false)
                 {
                     yield return 0;
