@@ -6,10 +6,10 @@ namespace Nerdtron.TV
 {
     public class Receiver : MonoBehaviour
     {
-        public bool isRandomPlay = false;
-
+        public Logger logger;
         public RawImage screen;
         public AudioSource speaker;
+        public bool isRandomPlay = false;
         public string[] videoURLS = new string[] { };
 
         private MovieTexture loadedMovieTexture;
@@ -17,7 +17,6 @@ namespace Nerdtron.TV
         void Start()
         {
             StartCoroutine("Stream");
-            LogManager.Instance.Log("test");
         }
 
         private IEnumerator Stream()
@@ -36,7 +35,7 @@ namespace Nerdtron.TV
                 WWW www = new WWW(this.videoURLS[key]);
                 while (www.isDone == false)
                 {
-                    LogManager.Instance.Log("The video is loading!");
+                    this.logger.Log("The video is loading!");
                     yield return 0;
                 }
 
@@ -57,11 +56,11 @@ namespace Nerdtron.TV
                 // Check if the video has finished playing.
                 while (this.loadedMovieTexture.isPlaying == true)
                 {
-                    LogManager.Instance.Log("The video is playing!");
+                    this.logger.Log("The video is playing!");
                     yield return 0;
                 }
 
-                LogManager.Instance.Log("The video is finished!");
+                this.logger.Log("The video is finished!");
 
                 if (this.isRandomPlay == false)
                 {
