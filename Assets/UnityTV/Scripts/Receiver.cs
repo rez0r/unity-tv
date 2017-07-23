@@ -6,15 +6,10 @@ namespace Nerdtron.TV
 {
     public class Receiver : MonoBehaviour
     {
-        public bool isDebugMode;
         public bool isRandomPlay = false;
 
         public RawImage screen;
         public AudioSource speaker;
-
-        public Text statusMessageLabel;
-        public GameObject debugPanel;
-
         public string[] videoURLS = new string[] { };
 
         private MovieTexture loadedMovieTexture;
@@ -22,20 +17,7 @@ namespace Nerdtron.TV
         void Start()
         {
             StartCoroutine("Stream");
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyUp(KeyCode.D))
-            {
-                this.isDebugMode = !this.isDebugMode;
-                this.debugPanel.SetActive(this.isDebugMode);
-            }
-        }
-
-        private void LogStatus(string message)
-        {
-            this.statusMessageLabel.text = message;
+            LogManager.Instance.Log("test");
         }
 
         private IEnumerator Stream()
@@ -54,7 +36,7 @@ namespace Nerdtron.TV
                 WWW www = new WWW(this.videoURLS[key]);
                 while (www.isDone == false)
                 {
-                    if (this.isDebugMode == true) this.LogStatus("The video is loading!");
+                    LogManager.Instance.Log("The video is loading!");
                     yield return 0;
                 }
 
@@ -75,11 +57,11 @@ namespace Nerdtron.TV
                 // Check if the video has finished playing.
                 while (this.loadedMovieTexture.isPlaying == true)
                 {
-                    if (this.isDebugMode == true) this.LogStatus("The video is playing!");
+                    LogManager.Instance.Log("The video is playing!");
                     yield return 0;
                 }
 
-                if (this.isDebugMode == true) this.LogStatus("The video is finished!");
+                LogManager.Instance.Log("The video is finished!");
 
                 if (this.isRandomPlay == false)
                 {
