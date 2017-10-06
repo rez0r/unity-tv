@@ -13,24 +13,20 @@ namespace Nerdtron.TV
         public string[] videoURLS = new string[] { };
 
         private MovieTexture loadedMovieTexture;
+        private WWW[] m_VideoBuffer = new WWW[] { };
 
         void Start()
         {
-            StartCoroutine("Stream");
+            StartCoroutine("Buffer");
         }
 
-        private IEnumerator Stream()
+        private IEnumerator Buffer()
         {
-            int key = 0; // TODO - The key should be a parameter, user might want to start from a different position in the list.
+            int key = 0;
+            System.Array.Resize(ref m_VideoBuffer, videoURLS.Length);
 
             while (true)
-            {
-                // Check if we are streaming the playlist of videos randomly or sequentially.
-                if (this.isRandomPlay == true)
-                {
-                    key = Random.Range(0, this.videoURLS.Length);
-                }
-
+            { 
                 // Download the video.
                 WWW www = new WWW(this.videoURLS[key]);
                 while (www.isDone == false)
@@ -39,10 +35,38 @@ namespace Nerdtron.TV
                     yield return 0;
                 }
 
+                m_VideoBuffer[key] = www;
+
+                ++key;
+                Debug.Log(key.ToString());
+
+                if (key == videoURLS.Length - 2)
+                {
+                    StartCoroutine("Play");
+                }
+
+                if (key == videoURLS.Length)
+                {
+                    Debug.Log("Break!");
+                    yield break;
+                }
+            }
+        }
+
+        private IEnumerator Play()
+        {
+            int key = 0;
+            WWW video;
+
+            while (true)
+            {
+                video = m_VideoBuffer[key];
+
                 // Assigned the downloaded video to a movie texture.
-                this.loadedMovieTexture = www.GetMovieTexture();
+                this.loadedMovieTexture = video.GetMovieTexture();
                 while (this.loadedMovieTexture.isReadyToPlay == false)
                 {
+                    logger.Log("The video is loading!");
                     yield return 0;
                 }
 
@@ -62,16 +86,13 @@ namespace Nerdtron.TV
 
                 this.logger.Log("The video is finished!");
 
-                if (this.isRandomPlay == false)
+                if (key < this.videoURLS.Length -1)
                 {
-                    if (key < this.videoURLS.Length - 1)
-                    {
-                        ++key;
-                    }
-                    else
-                    {
-                        key = 0;
-                    }
+                    ++key;
+                }
+                else
+                {
+                    key = 0;
                 }
             }
         }
