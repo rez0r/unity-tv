@@ -53,6 +53,13 @@ namespace Nerdtron.TV
             }
         }
 
+        private int RandomizeKey()
+        {
+            int key = Random.Range(0, m_VideoBuffer.Length - 1);
+            Debug.Log("Video Buffer size = " + m_VideoBuffer.Length.ToString());
+            return key;
+        }
+
         private IEnumerator Play()
         {
             int key = 0;
@@ -60,31 +67,40 @@ namespace Nerdtron.TV
 
             while (true)
             {
+                if (this.isRandomPlay == true)
+                {
+                    key = RandomizeKey();
+                    Debug.Log("Random key = " + key);
+                }
+                
                 video = m_VideoBuffer[key];
 
                 // Assigned the downloaded video to a movie texture.
-                this.loadedMovieTexture = video.GetMovieTexture();
-                while (this.loadedMovieTexture.isReadyToPlay == false)
+                if (video != null)
                 {
-                    logger.Log("The video is loading!");
-                    yield return 0;
+                    this.loadedMovieTexture = video.GetMovieTexture();
+                    while (this.loadedMovieTexture.isReadyToPlay == false)
+                    {
+                        logger.Log("The video is loading!");
+                        yield return 0;
+                    }
+
+                    this.screen.texture = this.loadedMovieTexture as MovieTexture;
+                    this.speaker.clip = this.loadedMovieTexture.audioClip;
+
+                    // Play the video.
+                    this.loadedMovieTexture.Play();
+                    this.speaker.Play();
+
+                    // Check if the video has finished playing.
+                    while (this.loadedMovieTexture.isPlaying == true)
+                    {
+                        this.logger.Log("The video is playing!");
+                        yield return 0;
+                    }
+
+                    this.logger.Log("The video is finished!");
                 }
-
-                this.screen.texture = this.loadedMovieTexture as MovieTexture;
-                this.speaker.clip = this.loadedMovieTexture.audioClip;
-
-                // Play the video.
-                this.loadedMovieTexture.Play();
-                this.speaker.Play();
-
-                // Check if the video has finished playing.
-                while (this.loadedMovieTexture.isPlaying == true)
-                {
-                    this.logger.Log("The video is playing!");
-                    yield return 0;
-                }
-
-                this.logger.Log("The video is finished!");
 
                 if (key < this.videoURLS.Length -1)
                 {
