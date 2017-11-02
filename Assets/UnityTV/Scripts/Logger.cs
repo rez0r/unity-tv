@@ -1,28 +1,33 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 namespace Nerdtron.TV
 {
     public class Logger : MonoBehaviour
     {
-        public GameObject debugPanel;
-        public Text statusMessageLabel;
-
-        private bool isDebugScreenDisplayed;
+        private string m_Message;
+        private bool m_ShowDebugScreen = false;
 
         private void Update()
         {
             if (Input.GetKeyUp(KeyCode.D))
             {
-                this.isDebugScreenDisplayed = !this.isDebugScreenDisplayed;
-                this.debugPanel.SetActive(this.isDebugScreenDisplayed);
+                m_ShowDebugScreen = !m_ShowDebugScreen;
+            }
+        }
+
+        void OnGUI()
+        {
+            if (m_ShowDebugScreen == true)
+            {
+                GUI.Box(new Rect(Screen.width/2 - 100, Screen.height - 24, 200, 25), m_Message);
+                GUI.Box(new Rect(Screen.width - 100, Screen.height - 24, 100, 25), "Version 1.0.0");
             }
         }
 
         public void Log(string message)
         {
+            m_Message = message;
             Debug.Log(message);
-            this.statusMessageLabel.text = message;
         }
     }
 }
