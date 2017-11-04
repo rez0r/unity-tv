@@ -4,34 +4,48 @@ using System.Collections;
 
 namespace Nerdtron.TV
 {
+    [System.Serializable]
+    public class Playlist
+    {
+        public string[] urls;
+    }
+
     public class Receiver : MonoBehaviour
     {
-        public Logger logger;
-        public RawImage screen;
-        public AudioSource speaker;
+        public Logger m_Logger;
+        public RawImage m_Screen;
+        public AudioSource m_Speaker;
         public bool isRandomPlay = false;
-        public string[] videoURLS = new string[] { };
 
-        private MovieTexture loadedMovieTexture;
+        private Playlist m_Playlist;
+        private MovieTexture m_LoadedMovieTexture;
         private WWW[] m_VideoBuffer = new WWW[] { };
+        private string m_PlaylistFileName = "Playlist.json";
 
         void Start()
         {
+            string filePath = System.IO.Path.Combine(Application.streamingAssetsPath, m_PlaylistFileName);
+            if (System.IO.File.Exists(filePath))
+            {
+                string dataAsJson = System.IO.File.ReadAllText(filePath);
+                m_Playlist = JsonUtility.FromJson<Playlist>(dataAsJson);
+            }
+
             StartCoroutine("Buffer");
         }
 
         private IEnumerator Buffer()
         {
             int key = 0;
-            System.Array.Resize(ref m_VideoBuffer, videoURLS.Length);
+            System.Array.Resize(ref m_VideoBuffer, m_Playlist.urls.Length);
 
             while (true)
             { 
                 // Download the video.
-                WWW www = new WWW(this.videoURLS[key]);
+                WWW www = new WWW(m_Playlist.urls[key]);
                 while (www.isDone == false)
                 {
-                    this.logger.Log("The video is loading!");
+                    m_Logger.Log("The video is loading!");
                     yield return 0;
                 }
 
@@ -40,12 +54,12 @@ namespace Nerdtron.TV
                 ++key;
                 Debug.Log(key.ToString());
 
-                if (key == videoURLS.Length - 2)
+                if (key == m_Playlist.urls.Length - 2)
                 {
                     StartCoroutine("Play");
                 }
 
-                if (key == videoURLS.Length)
+                if (key == m_Playlist.urls.Length)
                 {
                     Debug.Log("Break!");
                     yield break;
@@ -78,31 +92,31 @@ namespace Nerdtron.TV
                 // Assigned the downloaded video to a movie texture.
                 if (video != null)
                 {
-                    this.loadedMovieTexture = video.GetMovieTexture();
-                    while (this.loadedMovieTexture.isReadyToPlay == false)
+                    m_LoadedMovieTexture = video.GetMovieTexture();
+                    while (m_LoadedMovieTexture.isReadyToPlay == false)
                     {
-                        logger.Log("The video is loading!");
+                        m_Logger.Log("The video is loading!");
                         yield return 0;
                     }
 
-                    this.screen.texture = this.loadedMovieTexture as MovieTexture;
-                    this.speaker.clip = this.loadedMovieTexture.audioClip;
+                    m_Screen.texture = m_LoadedMovieTexture as MovieTexture;
+                    m_Speaker.clip = m_LoadedMovieTexture.audioClip;
 
                     // Play the video.
-                    this.loadedMovieTexture.Play();
-                    this.speaker.Play();
+                    m_LoadedMovieTexture.Play();
+                    m_Speaker.Play();
 
                     // Check if the video has finished playing.
-                    while (this.loadedMovieTexture.isPlaying == true)
+                    while (m_LoadedMovieTexture.isPlaying == true)
                     {
-                        this.logger.Log("The video is playing!");
+                        m_Logger.Log("The video is playing!");
                         yield return 0;
                     }
 
-                    this.logger.Log("The video is finished!");
+                    m_Logger.Log("The video is finished!");
                 }
 
-                if (key < this.videoURLS.Length -1)
+                if (key < m_Playlist.urls.Length -1)
                 {
                     ++key;
                 }
