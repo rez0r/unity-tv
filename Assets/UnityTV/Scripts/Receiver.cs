@@ -109,7 +109,8 @@ namespace Nerdtron.TV
                     // Check if the video has finished playing.
                     while (m_LoadedMovieTexture.isPlaying == true)
                     {
-                        m_Logger.Log("The video is playing!");
+                        m_Logger.Log("Video playing!");
+                        m_Logger.Log("Duration = " + m_LoadedMovieTexture.duration.ToString() + " secs");
                         yield return 0;
                     }
 
